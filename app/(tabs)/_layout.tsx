@@ -15,22 +15,23 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
+        tabBarActiveTintColor: "#FFFFFF",
+        tabBarInactiveTintColor: "#555555",
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
           paddingTop: 8,
           paddingBottom: bottomPadding,
           height: tabBarHeight,
-          backgroundColor: colors.background,
-          borderTopColor: colors.border,
+          backgroundColor: "#0A0A0A",
+          borderTopColor: "#2A2A2A",
           borderTopWidth: 0.5,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "500",
+          fontWeight: "600",
           marginTop: 2,
+          letterSpacing: 0.3,
         },
       }}
     >
@@ -39,7 +40,7 @@ export default function TabLayout() {
         options={{
           title: "Chat",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="bubble.left.fill" color={color} />
+            <IconSymbol size={24} name="bubble.left.fill" color={color} />
           ),
         }}
       />
@@ -48,7 +49,7 @@ export default function TabLayout() {
         options={{
           title: "Memories",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="bookmark.fill" color={color} />
+            <IconSymbol size={24} name="bookmark.fill" color={color} />
           ),
         }}
       />
@@ -57,7 +58,7 @@ export default function TabLayout() {
         options={{
           title: "Goals",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="target" color={color} />
+            <IconSymbol size={24} name="target" color={color} />
           ),
         }}
       />
@@ -66,7 +67,7 @@ export default function TabLayout() {
         options={{
           title: "Reminders",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="bell.fill" color={color} />
+            <IconSymbol size={24} name="bell.fill" color={color} />
           ),
         }}
       />

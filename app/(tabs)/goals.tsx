@@ -16,14 +16,13 @@ import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAtom } from "@/lib/atom-store";
-import { useColors } from "@/hooks/use-colors";
 import type { Goal, GoalStatus } from "@/types/atom";
 
 // ─── Status Config ────────────────────────────────────────────
-const STATUS_CONFIG: Record<GoalStatus, { label: string; color: string; emoji: string }> = {
-  active:    { label: "Active",    color: "#10B981", emoji: "🎯" },
-  completed: { label: "Done",      color: "#6C63FF", emoji: "✅" },
-  paused:    { label: "Paused",    color: "#F59E0B", emoji: "⏸️" },
+const STATUS_CONFIG: Record<GoalStatus, { label: string; color: string }> = {
+  active:    { label: "Active",    color: "#4ADE80" },
+  completed: { label: "Done",      color: "#888888" },
+  paused:    { label: "Paused",    color: "#FBBF24" },
 };
 
 // ─── Filter Tabs ──────────────────────────────────────────────
@@ -39,12 +38,10 @@ function GoalCard({
   goal,
   onToggle,
   onDelete,
-  colors,
 }: {
   goal: Goal;
   onToggle: (id: string, current: GoalStatus) => void;
   onDelete: (id: string) => void;
-  colors: ReturnType<typeof useColors>;
 }) {
   const statusCfg = STATUS_CONFIG[goal.status];
   const date = new Date(goal.timestamp).toLocaleDateString("en-US", {
@@ -67,42 +64,41 @@ function GoalCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={styles.card}>
       <View style={styles.cardRow}>
         <Pressable
           onPress={() => onToggle(goal.id, goal.status)}
-          style={({ pressed }) => [styles.checkBtn, pressed && { opacity: 0.6 }]}
+          style={({ pressed }) => [styles.checkBtn, pressed && { opacity: 0.5 }]}
         >
           <IconSymbol
             name={goal.status === "completed" ? "checkmark.circle.fill" : "circle"}
-            size={26}
-            color={goal.status === "completed" ? colors.primary : colors.border}
+            size={24}
+            color={goal.status === "completed" ? "#FFFFFF" : "#2A2A2A"}
           />
         </Pressable>
         <View style={styles.cardContent}>
           <Text
             style={[
               styles.goalText,
-              { color: colors.foreground },
               goal.status === "completed" && styles.goalTextDone,
             ]}
           >
             {goal.goal}
           </Text>
           <View style={styles.cardMeta}>
-            <View style={[styles.statusBadge, { backgroundColor: statusCfg.color + "20" }]}>
+            <View style={[styles.statusBadge, { backgroundColor: statusCfg.color + "18" }]}>
               <Text style={[styles.statusText, { color: statusCfg.color }]}>
-                {statusCfg.emoji} {statusCfg.label}
+                {statusCfg.label}
               </Text>
             </View>
-            <Text style={[styles.dateText, { color: colors.muted }]}>{date}</Text>
+            <Text style={styles.dateText}>{date}</Text>
           </View>
         </View>
         <Pressable
           onPress={handleDelete}
-          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.6 }]}
+          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.5 }]}
         >
-          <IconSymbol name="trash.fill" size={16} color={colors.error} />
+          <IconSymbol name="trash.fill" size={15} color="#555555" />
         </Pressable>
       </View>
     </View>
@@ -114,12 +110,10 @@ function AddGoalModal({
   visible,
   onClose,
   onAdd,
-  colors,
 }: {
   visible: boolean;
   onClose: () => void;
   onAdd: (text: string) => void;
-  colors: ReturnType<typeof useColors>;
 }) {
   const [text, setText] = useState("");
 
@@ -138,13 +132,13 @@ function AddGoalModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={styles.modalBackdrop} onPress={onClose} />
-        <View style={[styles.modalSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <View style={[styles.modalHandle, { backgroundColor: colors.border }]} />
-          <Text style={[styles.modalTitle, { color: colors.foreground }]}>New Goal</Text>
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>New Goal</Text>
           <TextInput
-            style={[styles.modalInput, { color: colors.foreground, backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={styles.modalInput}
             placeholder="What do you want to achieve?"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor="#555555"
             value={text}
             onChangeText={setText}
             multiline
@@ -154,20 +148,22 @@ function AddGoalModal({
           <View style={styles.modalActions}>
             <Pressable
               onPress={onClose}
-              style={({ pressed }) => [styles.modalCancelBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [styles.modalCancelBtn, pressed && { opacity: 0.7 }]}
             >
-              <Text style={[styles.modalCancelText, { color: colors.muted }]}>Cancel</Text>
+              <Text style={styles.modalCancelText}>Cancel</Text>
             </Pressable>
             <Pressable
               onPress={handleAdd}
               disabled={!text.trim()}
               style={({ pressed }) => [
                 styles.modalAddBtn,
-                { backgroundColor: text.trim() ? colors.primary : colors.border },
+                { backgroundColor: text.trim() ? "#FFFFFF" : "#2A2A2A" },
                 pressed && { opacity: 0.8 },
               ]}
             >
-              <Text style={styles.modalAddText}>Add Goal</Text>
+              <Text style={[styles.modalAddText, { color: text.trim() ? "#0A0A0A" : "#555555" }]}>
+                Add Goal
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -177,12 +173,12 @@ function AddGoalModal({
 }
 
 // ─── Empty State ──────────────────────────────────────────────
-function EmptyState({ colors }: { colors: ReturnType<typeof useColors> }) {
+function EmptyState() {
   return (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>🎯</Text>
-      <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No goals yet</Text>
-      <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+      <Text style={styles.emptySymbol}>◈</Text>
+      <Text style={styles.emptyTitle}>No goals yet</Text>
+      <Text style={styles.emptySubtitle}>
         Tap the + button to add a goal, or tell Atom "My goal is to..." in the Chat tab.
       </Text>
     </View>
@@ -191,7 +187,6 @@ function EmptyState({ colors }: { colors: ReturnType<typeof useColors> }) {
 
 // ─── Main Goals Screen ────────────────────────────────────────
 export default function GoalsScreen() {
-  const colors = useColors();
   const { state, addGoal, updateGoal, deleteGoal } = useAtom();
   const [activeFilter, setActiveFilter] = useState<GoalStatus | "all">("all");
   const [showModal, setShowModal] = useState(false);
@@ -215,9 +210,9 @@ export default function GoalsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Goal }) => (
-      <GoalCard goal={item} onToggle={handleToggle} onDelete={deleteGoal} colors={colors} />
+      <GoalCard goal={item} onToggle={handleToggle} onDelete={deleteGoal} />
     ),
-    [handleToggle, deleteGoal, colors]
+    [handleToggle, deleteGoal]
   );
 
   const keyExtractor = useCallback((item: Goal) => item.id, []);
@@ -227,18 +222,18 @@ export default function GoalsScreen() {
   return (
     <ScreenContainer containerClassName="bg-background">
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Goals</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.muted }]}>
+          <Text style={styles.headerTitle}>Goals</Text>
+          <Text style={styles.headerSubtitle}>
             {activeCount} active {activeCount === 1 ? "goal" : "goals"}
           </Text>
         </View>
         <Pressable
           onPress={() => setShowModal(true)}
-          style={({ pressed }) => [styles.fab, { backgroundColor: colors.primary }, pressed && { transform: [{ scale: 0.95 }] }]}
+          style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.92 }] }]}
         >
-          <IconSymbol name="plus" size={22} color="#FFFFFF" />
+          <IconSymbol name="plus" size={20} color="#0A0A0A" />
         </Pressable>
       </View>
 
@@ -254,13 +249,14 @@ export default function GoalsScreen() {
             onPress={() => setActiveFilter(item.key)}
             style={({ pressed }) => [
               styles.filterChip,
-              activeFilter === item.key
-                ? { backgroundColor: colors.primary }
-                : { backgroundColor: colors.surface, borderColor: colors.border },
+              activeFilter === item.key ? styles.filterChipActive : styles.filterChipInactive,
               pressed && { opacity: 0.7 },
             ]}
           >
-            <Text style={[styles.filterChipText, { color: activeFilter === item.key ? "#FFFFFF" : colors.muted }]}>
+            <Text style={[
+              styles.filterChipText,
+              { color: activeFilter === item.key ? "#0A0A0A" : "#888888" },
+            ]}>
               {item.label}
             </Text>
           </Pressable>
@@ -274,14 +270,13 @@ export default function GoalsScreen() {
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState colors={colors} />}
+        ListEmptyComponent={<EmptyState />}
       />
 
       <AddGoalModal
         visible={showModal}
         onClose={() => setShowModal(false)}
         onAdd={addGoal}
-        colors={colors}
       />
     </ScreenContainer>
   );
@@ -292,22 +287,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 0.5,
+    borderBottomColor: "#2A2A2A",
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.6,
   },
   headerSubtitle: {
     fontSize: 13,
     marginTop: 2,
+    color: "#555555",
+    fontWeight: "400",
   },
   fab: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -320,12 +321,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    borderWidth: 0.5,
     marginRight: 8,
+  },
+  filterChipActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  filterChipInactive: {
+    backgroundColor: "#141414",
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
   },
   filterChipText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   list: {
     paddingHorizontal: 16,
@@ -335,7 +343,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
     borderWidth: 0.5,
-    padding: 14,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
+    padding: 16,
   },
   cardRow: {
     flexDirection: "row",
@@ -343,7 +353,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   checkBtn: {
-    paddingTop: 2,
+    paddingTop: 1,
   },
   cardContent: {
     flex: 1,
@@ -352,10 +362,11 @@ const styles = StyleSheet.create({
   goalText: {
     fontSize: 15,
     lineHeight: 22,
+    color: "#FFFFFF",
     fontWeight: "500",
   },
   goalTextDone: {
-    opacity: 0.5,
+    color: "#555555",
     textDecorationLine: "line-through",
   },
   cardMeta: {
@@ -374,6 +385,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
+    color: "#555555",
   },
   deleteBtn: {
     padding: 4,
@@ -385,14 +397,16 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   modalSheet: {
+    backgroundColor: "#141414",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderWidth: 0.5,
-    padding: 20,
+    borderColor: "#2A2A2A",
+    padding: 24,
     paddingBottom: 40,
     gap: 16,
   },
@@ -400,65 +414,77 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
+    backgroundColor: "#2A2A2A",
     alignSelf: "center",
     marginBottom: 4,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
   modalInput: {
-    borderRadius: 12,
+    color: "#FFFFFF",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#2A2A2A",
     borderWidth: 0.5,
-    padding: 14,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 15,
     lineHeight: 22,
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: "top",
   },
   modalActions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   modalCancelBtn: {
     flex: 1,
     paddingVertical: 13,
     borderRadius: 12,
-    borderWidth: 1,
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#0A0A0A",
   },
   modalCancelText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#888888",
   },
   modalAddBtn: {
-    flex: 2,
+    flex: 1,
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: "center",
   },
   modalAddText: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    fontWeight: "700",
   },
-  // Empty
   emptyContainer: {
     alignItems: "center",
-    paddingTop: 60,
+    paddingTop: 72,
     paddingHorizontal: 32,
     gap: 12,
   },
-  emptyIcon: {
-    fontSize: 48,
+  emptySymbol: {
+    fontSize: 40,
+    color: "#2A2A2A",
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
+    color: "#555555",
   },
 });

@@ -17,15 +17,14 @@ import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAtom } from "@/lib/atom-store";
-import { useColors } from "@/hooks/use-colors";
 import type { Reminder, Recurrence } from "@/types/atom";
 
 // ─── Recurrence Config ────────────────────────────────────────
-const RECURRENCE_CONFIG: Record<Recurrence, { label: string; color: string }> = {
-  none:    { label: "Once",    color: "#6C63FF" },
-  daily:   { label: "Daily",   color: "#10B981" },
-  weekly:  { label: "Weekly",  color: "#3B82F6" },
-  monthly: { label: "Monthly", color: "#F59E0B" },
+const RECURRENCE_CONFIG: Record<Recurrence, { label: string }> = {
+  none:    { label: "Once" },
+  daily:   { label: "Daily" },
+  weekly:  { label: "Weekly" },
+  monthly: { label: "Monthly" },
 };
 
 // ─── Format Date ──────────────────────────────────────────────
@@ -50,11 +49,9 @@ function formatDueDate(iso: string): string {
 function ReminderCard({
   reminder,
   onDelete,
-  colors,
 }: {
   reminder: Reminder;
   onDelete: (id: string) => void;
-  colors: ReturnType<typeof useColors>;
 }) {
   const recurrenceCfg = RECURRENCE_CONFIG[reminder.recurrence];
   const isPast = new Date(reminder.dueAt) < new Date();
@@ -74,28 +71,22 @@ function ReminderCard({
   };
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-        isPast && { opacity: 0.6 },
-      ]}
-    >
+    <View style={[styles.card, isPast && { opacity: 0.5 }]}>
       <View style={styles.cardLeft}>
-        <View style={[styles.clockIcon, { backgroundColor: isPast ? colors.border : colors.warning + "20" }]}>
-          <IconSymbol name="clock.fill" size={18} color={isPast ? colors.muted : colors.warning} />
+        <View style={[styles.clockIcon, { backgroundColor: isPast ? "#1A1A1A" : "#FBBF2418" }]}>
+          <IconSymbol name="clock.fill" size={17} color={isPast ? "#555555" : "#FBBF24"} />
         </View>
       </View>
       <View style={styles.cardContent}>
-        <Text style={[styles.reminderTitle, { color: colors.foreground }]}>{reminder.title}</Text>
+        <Text style={styles.reminderTitle}>{reminder.title}</Text>
         <View style={styles.cardMeta}>
-          <Text style={[styles.dueText, { color: isPast ? colors.muted : colors.warning }]}>
+          <Text style={[styles.dueText, { color: isPast ? "#555555" : "#FBBF24" }]}>
             {formatDueDate(reminder.dueAt)}
           </Text>
           {reminder.recurrence !== "none" && (
-            <View style={[styles.recurrenceBadge, { backgroundColor: recurrenceCfg.color + "20" }]}>
-              <IconSymbol name="repeat" size={10} color={recurrenceCfg.color} />
-              <Text style={[styles.recurrenceText, { color: recurrenceCfg.color }]}>
+            <View style={styles.recurrenceBadge}>
+              <IconSymbol name="repeat" size={9} color="#888888" />
+              <Text style={styles.recurrenceText}>
                 {recurrenceCfg.label}
               </Text>
             </View>
@@ -104,9 +95,9 @@ function ReminderCard({
       </View>
       <Pressable
         onPress={handleDelete}
-        style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.6 }]}
+        style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.5 }]}
       >
-        <IconSymbol name="trash.fill" size={16} color={colors.error} />
+        <IconSymbol name="trash.fill" size={15} color="#555555" />
       </Pressable>
     </View>
   );
@@ -119,17 +110,14 @@ function AddReminderModal({
   visible,
   onClose,
   onAdd,
-  colors,
 }: {
   visible: boolean;
   onClose: () => void;
   onAdd: (title: string, dueAt: string, recurrence: Recurrence) => void;
-  colors: ReturnType<typeof useColors>;
 }) {
   const [title, setTitle] = useState("");
   const [recurrence, setRecurrence] = useState<Recurrence>("none");
 
-  // Default to tomorrow at 9am
   const defaultDue = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -155,30 +143,30 @@ function AddReminderModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={styles.modalBackdrop} onPress={onClose} />
-        <View style={[styles.modalSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <View style={[styles.modalHandle, { backgroundColor: colors.border }]} />
-          <Text style={[styles.modalTitle, { color: colors.foreground }]}>New Reminder</Text>
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>New Reminder</Text>
 
           <TextInput
-            style={[styles.modalInput, { color: colors.foreground, backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={styles.modalInput}
             placeholder="What do you want to be reminded of?"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor="#555555"
             value={title}
             onChangeText={setTitle}
             autoFocus
             maxLength={200}
           />
 
-          <Text style={[styles.fieldLabel, { color: colors.muted }]}>Due Date & Time</Text>
+          <Text style={styles.fieldLabel}>DUE DATE & TIME</Text>
           <TextInput
-            style={[styles.modalInput, { color: colors.foreground, backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={styles.modalInput}
             placeholder="YYYY-MM-DDTHH:MM"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor="#555555"
             value={dueAt}
             onChangeText={setDueAt}
           />
 
-          <Text style={[styles.fieldLabel, { color: colors.muted }]}>Repeat</Text>
+          <Text style={styles.fieldLabel}>REPEAT</Text>
           <View style={styles.recurrenceRow}>
             {RECURRENCE_OPTIONS.map((r) => (
               <Pressable
@@ -186,13 +174,14 @@ function AddReminderModal({
                 onPress={() => setRecurrence(r)}
                 style={({ pressed }) => [
                   styles.recurrenceOption,
-                  recurrence === r
-                    ? { backgroundColor: colors.primary }
-                    : { backgroundColor: colors.surface, borderColor: colors.border },
+                  recurrence === r ? styles.recurrenceOptionActive : styles.recurrenceOptionInactive,
                   pressed && { opacity: 0.7 },
                 ]}
               >
-                <Text style={[styles.recurrenceOptionText, { color: recurrence === r ? "#FFFFFF" : colors.muted }]}>
+                <Text style={[
+                  styles.recurrenceOptionText,
+                  { color: recurrence === r ? "#0A0A0A" : "#888888" },
+                ]}>
                   {RECURRENCE_CONFIG[r].label}
                 </Text>
               </Pressable>
@@ -202,20 +191,22 @@ function AddReminderModal({
           <View style={styles.modalActions}>
             <Pressable
               onPress={onClose}
-              style={({ pressed }) => [styles.modalCancelBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [styles.modalCancelBtn, pressed && { opacity: 0.7 }]}
             >
-              <Text style={[styles.modalCancelText, { color: colors.muted }]}>Cancel</Text>
+              <Text style={styles.modalCancelText}>Cancel</Text>
             </Pressable>
             <Pressable
               onPress={handleAdd}
               disabled={!title.trim()}
               style={({ pressed }) => [
                 styles.modalAddBtn,
-                { backgroundColor: title.trim() ? colors.primary : colors.border },
+                { backgroundColor: title.trim() ? "#FFFFFF" : "#2A2A2A" },
                 pressed && { opacity: 0.8 },
               ]}
             >
-              <Text style={styles.modalAddText}>Set Reminder</Text>
+              <Text style={[styles.modalAddText, { color: title.trim() ? "#0A0A0A" : "#555555" }]}>
+                Set Reminder
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -225,12 +216,12 @@ function AddReminderModal({
 }
 
 // ─── Empty State ──────────────────────────────────────────────
-function EmptyState({ colors }: { colors: ReturnType<typeof useColors> }) {
+function EmptyState() {
   return (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>⏰</Text>
-      <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No reminders</Text>
-      <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+      <Text style={styles.emptySymbol}>◷</Text>
+      <Text style={styles.emptyTitle}>No reminders</Text>
+      <Text style={styles.emptySubtitle}>
         Tap + to add a reminder, or tell Atom "Remind me at 6pm to..." in the Chat tab.
       </Text>
     </View>
@@ -239,7 +230,6 @@ function EmptyState({ colors }: { colors: ReturnType<typeof useColors> }) {
 
 // ─── Main Reminders Screen ────────────────────────────────────
 export default function RemindersScreen() {
-  const colors = useColors();
   const { state, addReminder, deleteReminder } = useAtom();
   const [showModal, setShowModal] = useState(false);
 
@@ -261,30 +251,21 @@ export default function RemindersScreen() {
     [addReminder]
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: Reminder }) => (
-      <ReminderCard reminder={item} onDelete={deleteReminder} colors={colors} />
-    ),
-    [deleteReminder, colors]
-  );
-
-  const keyExtractor = useCallback((item: Reminder) => item.id, []);
-
   return (
     <ScreenContainer containerClassName="bg-background">
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Reminders</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.muted }]}>
+          <Text style={styles.headerTitle}>Reminders</Text>
+          <Text style={styles.headerSubtitle}>
             {upcoming.length} upcoming
           </Text>
         </View>
         <Pressable
           onPress={() => setShowModal(true)}
-          style={({ pressed }) => [styles.fab, { backgroundColor: colors.primary }, pressed && { transform: [{ scale: 0.95 }] }]}
+          style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.92 }] }]}
         >
-          <IconSymbol name="plus" size={22} color="#FFFFFF" />
+          <IconSymbol name="plus" size={20} color="#0A0A0A" />
         </Pressable>
       </View>
 
@@ -292,9 +273,9 @@ export default function RemindersScreen() {
         {/* Upcoming */}
         {upcoming.length > 0 && (
           <>
-            <Text style={[styles.sectionLabel, { color: colors.muted }]}>UPCOMING</Text>
+            <Text style={styles.sectionLabel}>UPCOMING</Text>
             {upcoming.map((r) => (
-              <ReminderCard key={r.id} reminder={r} onDelete={deleteReminder} colors={colors} />
+              <ReminderCard key={r.id} reminder={r} onDelete={deleteReminder} />
             ))}
           </>
         )}
@@ -302,22 +283,21 @@ export default function RemindersScreen() {
         {/* Past */}
         {past.length > 0 && (
           <>
-            <Text style={[styles.sectionLabel, { color: colors.muted }]}>PAST</Text>
+            <Text style={styles.sectionLabel}>PAST</Text>
             {past.map((r) => (
-              <ReminderCard key={r.id} reminder={r} onDelete={deleteReminder} colors={colors} />
+              <ReminderCard key={r.id} reminder={r} onDelete={deleteReminder} />
             ))}
           </>
         )}
 
         {/* Empty */}
-        {state.reminders.length === 0 && <EmptyState colors={colors} />}
+        {state.reminders.length === 0 && <EmptyState />}
       </ScrollView>
 
       <AddReminderModal
         visible={showModal}
         onClose={() => setShowModal(false)}
         onAdd={handleAdd}
-        colors={colors}
       />
     </ScreenContainer>
   );
@@ -328,22 +308,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 0.5,
+    borderBottomColor: "#2A2A2A",
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.6,
   },
   headerSubtitle: {
     fontSize: 13,
     marginTop: 2,
+    color: "#555555",
+    fontWeight: "400",
   },
   fab: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -355,8 +341,9 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    color: "#555555",
     marginBottom: 4,
     marginTop: 8,
   },
@@ -365,6 +352,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 14,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
     padding: 14,
     gap: 12,
     marginBottom: 8,
@@ -373,20 +362,21 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   clockIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
   },
   cardContent: {
     flex: 1,
-    gap: 6,
+    gap: 5,
   },
   reminderTitle: {
     fontSize: 15,
     fontWeight: "500",
     lineHeight: 20,
+    color: "#FFFFFF",
   },
   cardMeta: {
     flexDirection: "row",
@@ -405,10 +395,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6,
+    backgroundColor: "#2A2A2A",
   },
   recurrenceText: {
     fontSize: 11,
     fontWeight: "600",
+    color: "#888888",
   },
   deleteBtn: {
     padding: 4,
@@ -419,38 +411,48 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   modalSheet: {
+    backgroundColor: "#141414",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderWidth: 0.5,
-    padding: 20,
+    borderColor: "#2A2A2A",
+    padding: 24,
     paddingBottom: 40,
-    gap: 12,
+    gap: 14,
   },
   modalHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
+    backgroundColor: "#2A2A2A",
     alignSelf: "center",
     marginBottom: 4,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
   fieldLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.3,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    color: "#555555",
     marginTop: 4,
   },
   modalInput: {
-    borderRadius: 12,
+    color: "#FFFFFF",
+    backgroundColor: "#0A0A0A",
+    borderColor: "#2A2A2A",
     borderWidth: 0.5,
-    padding: 14,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 15,
   },
   recurrenceRow: {
@@ -462,27 +464,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
+  },
+  recurrenceOptionActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  recurrenceOptionInactive: {
+    backgroundColor: "#0A0A0A",
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
   },
   recurrenceOptionText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   modalActions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     marginTop: 4,
   },
   modalCancelBtn: {
     flex: 1,
     paddingVertical: 13,
     borderRadius: 12,
-    borderWidth: 1,
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#0A0A0A",
   },
   modalCancelText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#888888",
   },
   modalAddBtn: {
     flex: 2,
@@ -492,26 +504,29 @@ const styles = StyleSheet.create({
   },
   modalAddText: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    fontWeight: "700",
   },
   // Empty
   emptyContainer: {
     alignItems: "center",
-    paddingTop: 60,
+    paddingTop: 72,
     paddingHorizontal: 32,
     gap: 12,
   },
-  emptyIcon: {
-    fontSize: 48,
+  emptySymbol: {
+    fontSize: 40,
+    color: "#2A2A2A",
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
+    color: "#555555",
   },
 });

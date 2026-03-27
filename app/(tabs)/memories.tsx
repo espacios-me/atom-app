@@ -14,7 +14,6 @@ import { Platform } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAtom } from "@/lib/atom-store";
-import { useColors } from "@/hooks/use-colors";
 import type { Memory, MemoryKind } from "@/types/atom";
 
 // ─── Filter Tabs ──────────────────────────────────────────────
@@ -28,16 +27,16 @@ const FILTERS: Array<{ key: MemoryKind | "all"; label: string }> = [
 ];
 
 // ─── Kind Badge Config ────────────────────────────────────────
-const KIND_CONFIG: Record<MemoryKind, { emoji: string; color: string }> = {
-  preference: { emoji: "💡", color: "#6C63FF" },
-  fact:       { emoji: "📌", color: "#3B82F6" },
-  person:     { emoji: "👤", color: "#10B981" },
-  project:    { emoji: "🗂️", color: "#F59E0B" },
-  note:       { emoji: "📝", color: "#EC4899" },
+const KIND_CONFIG: Record<MemoryKind, { symbol: string; label: string }> = {
+  preference: { symbol: "◎", label: "Preference" },
+  fact:       { symbol: "●", label: "Fact" },
+  person:     { symbol: "◈", label: "Person" },
+  project:    { symbol: "▣", label: "Project" },
+  note:       { symbol: "◷", label: "Note" },
 };
 
 // ─── Importance Stars ─────────────────────────────────────────
-function ImportanceStars({ importance, color }: { importance: number; color: string }) {
+function ImportanceStars({ importance }: { importance: number }) {
   return (
     <View style={styles.stars}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -53,11 +52,9 @@ function ImportanceStars({ importance, color }: { importance: number; color: str
 function MemoryCard({
   memory,
   onDelete,
-  colors,
 }: {
   memory: Memory;
   onDelete: (id: string) => void;
-  colors: ReturnType<typeof useColors>;
 }) {
   const kindCfg = KIND_CONFIG[memory.kind];
   const date = new Date(memory.timestamp).toLocaleDateString("en-US", {
@@ -81,35 +78,33 @@ function MemoryCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={[styles.kindBadge, { backgroundColor: kindCfg.color + "20" }]}>
-          <Text style={styles.kindEmoji}>{kindCfg.emoji}</Text>
-          <Text style={[styles.kindLabel, { color: kindCfg.color }]}>
-            {memory.kind.charAt(0).toUpperCase() + memory.kind.slice(1)}
-          </Text>
+        <View style={styles.kindBadge}>
+          <Text style={styles.kindSymbol}>{kindCfg.symbol}</Text>
+          <Text style={styles.kindLabel}>{kindCfg.label}</Text>
         </View>
-        <ImportanceStars importance={memory.importance} color={kindCfg.color} />
+        <ImportanceStars importance={memory.importance} />
         <Pressable
           onPress={handleDelete}
-          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.6 }]}
+          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.5 }]}
         >
-          <IconSymbol name="trash.fill" size={16} color={colors.error} />
+          <IconSymbol name="trash.fill" size={15} color="#555555" />
         </Pressable>
       </View>
-      <Text style={[styles.cardText, { color: colors.foreground }]}>{memory.text}</Text>
-      <Text style={[styles.cardDate, { color: colors.muted }]}>{date}</Text>
+      <Text style={styles.cardText}>{memory.text}</Text>
+      <Text style={styles.cardDate}>{date}</Text>
     </View>
   );
 }
 
 // ─── Empty State ──────────────────────────────────────────────
-function EmptyState({ filter, colors }: { filter: string; colors: ReturnType<typeof useColors> }) {
+function EmptyState({ filter }: { filter: string }) {
   return (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>🧠</Text>
-      <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No memories yet</Text>
-      <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
+      <Text style={styles.emptySymbol}>◎</Text>
+      <Text style={styles.emptyTitle}>No memories yet</Text>
+      <Text style={styles.emptySubtitle}>
         {filter === "all"
           ? "Tell Atom to \"remember\" something in the Chat tab and it will appear here."
           : `No ${filter} memories saved yet.`}
@@ -120,13 +115,12 @@ function EmptyState({ filter, colors }: { filter: string; colors: ReturnType<typ
 
 // ─── Main Memories Screen ─────────────────────────────────────
 export default function MemoriesScreen() {
-  const colors = useColors();
   const { state, deleteMemory } = useAtom();
   const [activeFilter, setActiveFilter] = useState<MemoryKind | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredMemories = useMemo(() => {
-    let list = [...state.memories].reverse(); // newest first
+    let list = [...state.memories].reverse();
     if (activeFilter !== "all") {
       list = list.filter((m) => m.kind === activeFilter);
     }
@@ -139,9 +133,9 @@ export default function MemoriesScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Memory }) => (
-      <MemoryCard memory={item} onDelete={deleteMemory} colors={colors} />
+      <MemoryCard memory={item} onDelete={deleteMemory} />
     ),
-    [deleteMemory, colors]
+    [deleteMemory]
   );
 
   const keyExtractor = useCallback((item: Memory) => item.id, []);
@@ -149,27 +143,27 @@ export default function MemoriesScreen() {
   return (
     <ScreenContainer containerClassName="bg-background">
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Memories</Text>
-        <View style={[styles.countBadge, { backgroundColor: colors.primary + "20" }]}>
-          <Text style={[styles.countText, { color: colors.primary }]}>{state.memories.length}</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Memories</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.countText}>{state.memories.length}</Text>
         </View>
       </View>
 
       {/* Search */}
-      <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <IconSymbol name="magnifyingglass" size={16} color={colors.muted} />
+      <View style={styles.searchBar}>
+        <IconSymbol name="magnifyingglass" size={15} color="#555555" />
         <TextInput
-          style={[styles.searchInput, { color: colors.foreground }]}
+          style={styles.searchInput}
           placeholder="Search memories..."
-          placeholderTextColor={colors.muted}
+          placeholderTextColor="#555555"
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
         />
         {searchQuery.length > 0 && (
           <Pressable onPress={() => setSearchQuery("")}>
-            <IconSymbol name="xmark.circle.fill" size={16} color={colors.muted} />
+            <IconSymbol name="xmark.circle.fill" size={15} color="#555555" />
           </Pressable>
         )}
       </View>
@@ -186,16 +180,14 @@ export default function MemoriesScreen() {
             onPress={() => setActiveFilter(item.key)}
             style={({ pressed }) => [
               styles.filterChip,
-              activeFilter === item.key
-                ? { backgroundColor: colors.primary }
-                : { backgroundColor: colors.surface, borderColor: colors.border },
+              activeFilter === item.key ? styles.filterChipActive : styles.filterChipInactive,
               pressed && { opacity: 0.7 },
             ]}
           >
             <Text
               style={[
                 styles.filterChipText,
-                { color: activeFilter === item.key ? "#FFFFFF" : colors.muted },
+                { color: activeFilter === item.key ? "#0A0A0A" : "#888888" },
               ]}
             >
               {item.label}
@@ -211,7 +203,7 @@ export default function MemoriesScreen() {
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState filter={activeFilter} colors={colors} />}
+        ListEmptyComponent={<EmptyState filter={activeFilter} />}
       />
     </ScreenContainer>
   );
@@ -222,22 +214,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 0.5,
+    borderBottomColor: "#2A2A2A",
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.6,
   },
   countBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
+    backgroundColor: "#2A2A2A",
   },
   countText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
+    color: "#888888",
   },
   searchBar: {
     flexDirection: "row",
@@ -245,14 +242,18 @@ const styles = StyleSheet.create({
     gap: 8,
     marginHorizontal: 16,
     marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     borderRadius: 12,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
+    color: "#FFFFFF",
+    fontWeight: "400",
   },
   filterList: {
     paddingHorizontal: 16,
@@ -263,12 +264,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    borderWidth: 0.5,
     marginRight: 8,
+  },
+  filterChipActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  filterChipInactive: {
+    backgroundColor: "#141414",
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
   },
   filterChipText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   list: {
     paddingHorizontal: 16,
@@ -278,7 +286,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
     borderWidth: 0.5,
-    padding: 14,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
+    padding: 16,
     gap: 8,
   },
   cardHeader: {
@@ -289,25 +299,28 @@ const styles = StyleSheet.create({
   kindBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: 8,
+    backgroundColor: "#2A2A2A",
   },
-  kindEmoji: {
-    fontSize: 12,
+  kindSymbol: {
+    fontSize: 11,
+    color: "#888888",
   },
   kindLabel: {
     fontSize: 11,
     fontWeight: "600",
+    color: "#888888",
   },
   stars: {
     flexDirection: "row",
     flex: 1,
   },
   star: {
-    fontSize: 12,
-    color: "#F59E0B",
+    fontSize: 11,
+    color: "#FBBF24",
   },
   deleteBtn: {
     padding: 4,
@@ -315,26 +328,35 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 15,
     lineHeight: 22,
+    color: "#FFFFFF",
+    fontWeight: "400",
   },
   cardDate: {
     fontSize: 12,
+    color: "#555555",
+    fontWeight: "400",
   },
   emptyContainer: {
     alignItems: "center",
-    paddingTop: 60,
+    paddingTop: 72,
     paddingHorizontal: 32,
     gap: 12,
   },
-  emptyIcon: {
-    fontSize: 48,
+  emptySymbol: {
+    fontSize: 40,
+    color: "#2A2A2A",
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
+    color: "#555555",
+    fontWeight: "400",
   },
 });

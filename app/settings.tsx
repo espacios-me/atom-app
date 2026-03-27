@@ -14,13 +14,11 @@ import { Platform } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAtom } from "@/lib/atom-store";
-import { useColors } from "@/hooks/use-colors";
-
 
 // ─── Section Header ───────────────────────────────────────────
-function SectionHeader({ title, colors }: { title: string; colors: ReturnType<typeof useColors> }) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <Text style={[styles.sectionHeader, { color: colors.muted }]}>{title.toUpperCase()}</Text>
+    <Text style={styles.sectionHeader}>{title.toUpperCase()}</Text>
   );
 }
 
@@ -31,7 +29,6 @@ function SettingsRow({
   value,
   onPress,
   destructive,
-  colors,
   rightElement,
 }: {
   icon: string;
@@ -39,7 +36,6 @@ function SettingsRow({
   value?: string;
   onPress?: () => void;
   destructive?: boolean;
-  colors: ReturnType<typeof useColors>;
   rightElement?: React.ReactNode;
 }) {
   return (
@@ -47,21 +43,20 @@ function SettingsRow({
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-        pressed && onPress && { opacity: 0.7 },
+        pressed && onPress && { opacity: 0.6 },
       ]}
     >
       <View style={styles.rowLeft}>
-        <View style={[styles.rowIcon, { backgroundColor: destructive ? colors.error + "20" : colors.primary + "20" }]}>
-          <IconSymbol name={icon as any} size={18} color={destructive ? colors.error : colors.primary} />
+        <View style={[styles.rowIcon, { backgroundColor: destructive ? "#F8717118" : "#FFFFFF18" }]}>
+          <IconSymbol name={icon as any} size={17} color={destructive ? "#F87171" : "#FFFFFF"} />
         </View>
-        <Text style={[styles.rowLabel, { color: destructive ? colors.error : colors.foreground }]}>{label}</Text>
+        <Text style={[styles.rowLabel, { color: destructive ? "#F87171" : "#FFFFFF" }]}>{label}</Text>
       </View>
       <View style={styles.rowRight}>
-        {value && <Text style={[styles.rowValue, { color: colors.muted }]}>{value}</Text>}
+        {value && <Text style={styles.rowValue}>{value}</Text>}
         {rightElement}
         {onPress && !rightElement && (
-          <IconSymbol name="chevron.right" size={16} color={colors.muted} />
+          <IconSymbol name="chevron.right" size={14} color="#555555" />
         )}
       </View>
     </Pressable>
@@ -70,8 +65,8 @@ function SettingsRow({
 
 // ─── Main Settings Screen ─────────────────────────────────────
 export default function SettingsScreen() {
-  const colors = useColors();
   const { state, eraseAll } = useAtom();
+
   const handleEraseAll = () => {
     Alert.alert(
       "Erase All Data",
@@ -98,65 +93,62 @@ export default function SettingsScreen() {
   return (
     <ScreenContainer containerClassName="bg-background">
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.6 }]}
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.5 }]}
         >
-          <IconSymbol name="chevron.left" size={24} color={colors.primary} />
-          <Text style={[styles.backText, { color: colors.primary }]}>Chat</Text>
+          <IconSymbol name="chevron.left" size={22} color="#FFFFFF" />
+          <Text style={styles.backText}>Chat</Text>
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Settings</Text>
+        <Text style={styles.headerTitle}>Settings</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* Stats */}
-        <SectionHeader title="Your Data" colors={colors} />
-        <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <SectionHeader title="Your Data" />
+        <View style={styles.statsCard}>
           <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>{memoriesCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Memories</Text>
+            <Text style={styles.statNumber}>{memoriesCount}</Text>
+            <Text style={styles.statLabel}>Memories</Text>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.success }]}>{goalsCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Active Goals</Text>
+            <Text style={[styles.statNumber, { color: "#4ADE80" }]}>{goalsCount}</Text>
+            <Text style={styles.statLabel}>Active Goals</Text>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.warning }]}>{remindersCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Reminders</Text>
+            <Text style={[styles.statNumber, { color: "#FBBF24" }]}>{remindersCount}</Text>
+            <Text style={styles.statLabel}>Reminders</Text>
           </View>
         </View>
 
         {/* Danger Zone */}
-        <SectionHeader title="Danger Zone" colors={colors} />
+        <SectionHeader title="Danger Zone" />
         <SettingsRow
           icon="trash.fill"
           label="Erase All Data"
           onPress={handleEraseAll}
           destructive
-          colors={colors}
         />
 
         {/* About */}
-        <SectionHeader title="About" colors={colors} />
+        <SectionHeader title="About" />
         <SettingsRow
           icon="info.circle"
           label="Version"
           value="1.0.0"
-          colors={colors}
         />
         <SettingsRow
           icon="wand.and.stars"
           label="Powered by"
           value="OpenAI GPT-4"
-          colors={colors}
         />
 
-        <Text style={[styles.footer, { color: colors.muted }]}>
+        <Text style={styles.footer}>
           Atom — Personal Memory Assistant{"\n"}
           Based on the Atom Feasibility Thesis (March 2026)
         </Text>
@@ -170,9 +162,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 0.5,
+    borderBottomColor: "#2A2A2A",
   },
   backBtn: {
     flexDirection: "row",
@@ -182,10 +175,14 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "500",
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
   content: {
     paddingHorizontal: 16,
@@ -194,9 +191,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionHeader: {
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    color: "#555555",
     marginTop: 20,
     marginBottom: 8,
     marginLeft: 4,
@@ -205,24 +203,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 14,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
     overflow: "hidden",
     marginBottom: 4,
   },
   statItem: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 11,
-    marginTop: 2,
+    marginTop: 3,
+    color: "#555555",
+    fontWeight: "500",
   },
   statDivider: {
     width: 0.5,
+    backgroundColor: "#2A2A2A",
     marginVertical: 12,
   },
   row: {
@@ -230,9 +235,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
     marginBottom: 4,
   },
   rowLeft: {
@@ -258,11 +265,14 @@ const styles = StyleSheet.create({
   },
   rowValue: {
     fontSize: 14,
+    color: "#555555",
   },
   footer: {
     textAlign: "center",
     fontSize: 12,
     lineHeight: 18,
     marginTop: 32,
+    color: "#555555",
+    fontWeight: "400",
   },
 });

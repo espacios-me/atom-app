@@ -16,18 +16,17 @@ import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAtom } from "@/lib/atom-store";
-import { useColors } from "@/hooks/use-colors";
 import type { ChatMessage, Intent } from "@/types/atom";
 
 // ─── Intent Badge Config ──────────────────────────────────────
-const INTENT_LABELS: Partial<Record<Intent, { label: string; emoji: string }>> = {
-  remember:      { label: "Memory saved",    emoji: "🧠" },
-  recall:        { label: "Recalling",        emoji: "💭" },
-  remind:        { label: "Reminder set",     emoji: "⏰" },
-  goals:         { label: "Goal saved",       emoji: "🎯" },
-  log_behavior:  { label: "Logged",           emoji: "📊" },
-  delete_memory: { label: "Memory deleted",   emoji: "🗑️" },
-  erase_all:     { label: "Data erased",      emoji: "⚠️" },
+const INTENT_LABELS: Partial<Record<Intent, { label: string; symbol: string }>> = {
+  remember:      { label: "Memory saved",    symbol: "●" },
+  recall:        { label: "Recalling",        symbol: "◎" },
+  remind:        { label: "Reminder set",     symbol: "◷" },
+  goals:         { label: "Goal saved",       symbol: "◈" },
+  log_behavior:  { label: "Logged",           symbol: "▣" },
+  delete_memory: { label: "Memory deleted",   symbol: "✕" },
+  erase_all:     { label: "Data erased",      symbol: "⚠" },
 };
 
 // ─── Quick Actions ────────────────────────────────────────────
@@ -39,7 +38,7 @@ const QUICK_ACTIONS = [
 ];
 
 // ─── Message Bubble ───────────────────────────────────────────
-function MessageBubble({ message, colors }: { message: ChatMessage; colors: ReturnType<typeof useColors> }) {
+function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const intentInfo = message.intent ? INTENT_LABELS[message.intent] : null;
   const hasBadge = intentInfo && (
@@ -51,26 +50,24 @@ function MessageBubble({ message, colors }: { message: ChatMessage; colors: Retu
   return (
     <View style={[styles.bubbleRow, isUser ? styles.bubbleRowUser : styles.bubbleRowAtom]}>
       {!isUser && (
-        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+        <View style={styles.avatar}>
           <Text style={styles.avatarText}>A</Text>
         </View>
       )}
       <View style={[
         styles.bubble,
-        isUser
-          ? [styles.bubbleUser, { backgroundColor: colors.primary }]
-          : [styles.bubbleAtom, { backgroundColor: colors.surface, borderColor: colors.border }],
+        isUser ? styles.bubbleUser : styles.bubbleAtom,
       ]}>
         <Text style={[
           styles.bubbleText,
-          { color: isUser ? "#FFFFFF" : colors.foreground },
+          { color: isUser ? "#0A0A0A" : "#FFFFFF" },
         ]}>
           {message.text}
         </Text>
         {hasBadge && intentInfo && (
-          <View style={[styles.intentBadge, { backgroundColor: isUser ? "rgba(255,255,255,0.2)" : colors.background }]}>
-            <Text style={[styles.intentBadgeText, { color: isUser ? "#FFFFFF" : colors.primary }]}>
-              {intentInfo.emoji} {intentInfo.label}
+          <View style={[styles.intentBadge, { backgroundColor: isUser ? "rgba(0,0,0,0.15)" : "#2A2A2A" }]}>
+            <Text style={[styles.intentBadgeText, { color: isUser ? "#0A0A0A" : "#888888" }]}>
+              {intentInfo.symbol} {intentInfo.label}
             </Text>
           </View>
         )}
@@ -80,42 +77,42 @@ function MessageBubble({ message, colors }: { message: ChatMessage; colors: Retu
 }
 
 // ─── Typing Indicator ─────────────────────────────────────────
-function TypingIndicator({ colors }: { colors: ReturnType<typeof useColors> }) {
+function TypingIndicator() {
   return (
     <View style={[styles.bubbleRow, styles.bubbleRowAtom]}>
-      <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+      <View style={styles.avatar}>
         <Text style={styles.avatarText}>A</Text>
       </View>
-      <View style={[styles.bubble, styles.bubbleAtom, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <ActivityIndicator size="small" color={colors.primary} />
+      <View style={[styles.bubble, styles.bubbleAtom]}>
+        <ActivityIndicator size="small" color="#888888" />
       </View>
     </View>
   );
 }
 
 // ─── Welcome State ────────────────────────────────────────────
-function WelcomeState({ colors }: { colors: ReturnType<typeof useColors> }) {
+function WelcomeState() {
   return (
     <View style={styles.welcomeContainer}>
-      <View style={[styles.welcomeIconBg, { backgroundColor: colors.surface }]}>
-        <Text style={styles.welcomeIcon}>🧠</Text>
+      <View style={styles.welcomeIconBg}>
+        <Text style={styles.welcomeIcon}>A</Text>
       </View>
-      <Text style={[styles.welcomeTitle, { color: colors.foreground }]}>
+      <Text style={styles.welcomeTitle}>
         Hi, I'm Atom
       </Text>
-      <Text style={[styles.welcomeSubtitle, { color: colors.muted }]}>
+      <Text style={styles.welcomeSubtitle}>
         Your personal memory assistant. Tell me what to remember, set reminders, or track your goals.
       </Text>
       <View style={styles.welcomeHints}>
         {[
-          { emoji: "💡", text: "\"Remember I prefer email\"" },
-          { emoji: "⏰", text: "\"Remind me at 6pm to call Ahmed\"" },
-          { emoji: "🎯", text: "\"My goal is to read more\"" },
-          { emoji: "💭", text: "\"What do you remember?\"" },
+          { symbol: "◎", text: "\"Remember I prefer email\"" },
+          { symbol: "◷", text: "\"Remind me at 6pm to call Ahmed\"" },
+          { symbol: "◈", text: "\"My goal is to read more\"" },
+          { symbol: "●", text: "\"What do you remember?\"" },
         ].map((hint, i) => (
-          <View key={i} style={[styles.hintRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={styles.hintEmoji}>{hint.emoji}</Text>
-            <Text style={[styles.hintText, { color: colors.muted }]}>{hint.text}</Text>
+          <View key={i} style={styles.hintRow}>
+            <Text style={styles.hintSymbol}>{hint.symbol}</Text>
+            <Text style={styles.hintText}>{hint.text}</Text>
           </View>
         ))}
       </View>
@@ -125,7 +122,6 @@ function WelcomeState({ colors }: { colors: ReturnType<typeof useColors> }) {
 
 // ─── Main Chat Screen ─────────────────────────────────────────
 export default function ChatScreen() {
-  const colors = useColors();
   const { state, sendMessage } = useAtom();
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef<FlatList>(null);
@@ -146,29 +142,29 @@ export default function ChatScreen() {
   }, []);
 
   const renderMessage = useCallback(({ item }: { item: ChatMessage }) => (
-    <MessageBubble message={item} colors={colors} />
-  ), [colors]);
+    <MessageBubble message={item} />
+  ), []);
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
 
   return (
     <ScreenContainer containerClassName="bg-background">
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={[styles.headerAvatar, { backgroundColor: colors.primary }]}>
+          <View style={styles.headerAvatar}>
             <Text style={styles.headerAvatarText}>A</Text>
           </View>
           <View>
-            <Text style={[styles.headerTitle, { color: colors.foreground }]}>Atom</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.success }]}>● Active</Text>
+            <Text style={styles.headerTitle}>Atom</Text>
+            <Text style={styles.headerSubtitle}>● Active</Text>
           </View>
         </View>
         <Pressable
           onPress={() => router.push("/settings")}
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.5 }]}
         >
-          <IconSymbol name="gearshape.fill" size={22} color={colors.muted} />
+          <IconSymbol name="gearshape.fill" size={20} color="#555555" />
         </Pressable>
       </View>
 
@@ -179,7 +175,7 @@ export default function ChatScreen() {
       >
         {/* Messages */}
         {state.messages.length === 0 ? (
-          <WelcomeState colors={colors} />
+          <WelcomeState />
         ) : (
           <FlatList
             ref={flatListRef}
@@ -188,7 +184,7 @@ export default function ChatScreen() {
             keyExtractor={keyExtractor}
             contentContainerStyle={styles.messageList}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-            ListFooterComponent={state.isTyping ? <TypingIndicator colors={colors} /> : null}
+            ListFooterComponent={state.isTyping ? <TypingIndicator /> : null}
           />
         )}
 
@@ -201,23 +197,22 @@ export default function ChatScreen() {
                 onPress={() => handleQuickAction(action)}
                 style={({ pressed }) => [
                   styles.quickChip,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                  pressed && { opacity: 0.7 },
+                  pressed && { opacity: 0.6 },
                 ]}
               >
-                <Text style={[styles.quickChipText, { color: colors.primary }]}>{action}</Text>
+                <Text style={styles.quickChipText}>{action}</Text>
               </Pressable>
             ))}
           </View>
         )}
 
         {/* Input Bar */}
-        <View style={[styles.inputBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-          <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.inputBar}>
+          <View style={styles.inputWrapper}>
             <TextInput
-              style={[styles.input, { color: colors.foreground }]}
+              style={styles.input}
               placeholder="Message Atom..."
-              placeholderTextColor={colors.muted}
+              placeholderTextColor="#555555"
               value={inputText}
               onChangeText={setInputText}
               multiline
@@ -229,11 +224,11 @@ export default function ChatScreen() {
               disabled={!inputText.trim() || state.isTyping}
               style={({ pressed }) => [
                 styles.sendBtn,
-                { backgroundColor: inputText.trim() && !state.isTyping ? colors.primary : colors.border },
-                pressed && { transform: [{ scale: 0.95 }] },
+                { backgroundColor: inputText.trim() && !state.isTyping ? "#FFFFFF" : "#2A2A2A" },
+                pressed && { transform: [{ scale: 0.92 }] },
               ]}
             >
-              <IconSymbol name="paperplane.fill" size={18} color="#FFFFFF" />
+              <IconSymbol name="paperplane.fill" size={16} color={inputText.trim() && !state.isTyping ? "#0A0A0A" : "#555555"} />
             </Pressable>
           </View>
         </View>
@@ -247,41 +242,48 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 0.5,
+    borderBottomColor: "#2A2A2A",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
   },
   headerAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
   headerAvatarText: {
+    color: "#0A0A0A",
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  headerTitle: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "600",
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
-    fontSize: 12,
+    color: "#4ADE80",
+    fontSize: 11,
     marginTop: 1,
+    fontWeight: "500",
   },
   headerBtn: {
     padding: 6,
   },
   messageList: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     gap: 12,
   },
   bubbleRow: {
@@ -300,35 +302,40 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   avatarText: {
-    color: "#FFFFFF",
+    color: "#0A0A0A",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   bubble: {
     maxWidth: "78%",
     borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
   },
   bubbleUser: {
+    backgroundColor: "#FFFFFF",
     borderBottomRightRadius: 4,
   },
   bubbleAtom: {
+    backgroundColor: "#141414",
     borderBottomLeftRadius: 4,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
   },
   bubbleText: {
     fontSize: 15,
     lineHeight: 22,
+    fontWeight: "400",
   },
   intentBadge: {
     marginTop: 6,
-    borderRadius: 10,
+    borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
     alignSelf: "flex-start",
@@ -336,6 +343,7 @@ const styles = StyleSheet.create({
   intentBadgeText: {
     fontSize: 11,
     fontWeight: "600",
+    letterSpacing: 0.2,
   },
   welcomeContainer: {
     flex: 1,
@@ -345,26 +353,34 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   welcomeIconBg: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 20,
   },
   welcomeIcon: {
-    fontSize: 40,
+    fontSize: 32,
+    color: "#0A0A0A",
+    fontWeight: "900",
+    letterSpacing: -1,
   },
   welcomeTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    marginBottom: 8,
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "800",
+    marginBottom: 10,
+    letterSpacing: -0.8,
   },
   welcomeSubtitle: {
+    color: "#888888",
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 28,
+    fontWeight: "400",
   },
   welcomeHints: {
     width: "100%",
@@ -373,17 +389,23 @@ const styles = StyleSheet.create({
   hintRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
   },
-  hintEmoji: {
-    fontSize: 18,
+  hintSymbol: {
+    fontSize: 14,
+    color: "#888888",
+    width: 16,
+    textAlign: "center",
   },
   hintText: {
     fontSize: 13,
+    color: "#888888",
     fontStyle: "italic",
   },
   quickActions: {
@@ -397,23 +419,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
   },
   quickChipText: {
     fontSize: 13,
     fontWeight: "500",
+    color: "#FFFFFF",
   },
   inputBar: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderTopWidth: 0.5,
+    borderTopColor: "#2A2A2A",
+    backgroundColor: "#0A0A0A",
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "flex-end",
     borderRadius: 24,
-    borderWidth: 1,
-    paddingLeft: 16,
+    borderWidth: 0.5,
+    borderColor: "#2A2A2A",
+    backgroundColor: "#141414",
+    paddingLeft: 18,
     paddingRight: 6,
     paddingVertical: 6,
     gap: 8,
@@ -425,11 +454,13 @@ const styles = StyleSheet.create({
     maxHeight: 120,
     paddingTop: 4,
     paddingBottom: 4,
+    color: "#FFFFFF",
+    fontWeight: "400",
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
