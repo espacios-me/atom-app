@@ -1,0 +1,40 @@
+Temporary CI unblock plan for repo-wide Prettier failures.
+
+Suggested .prettierignore contents:
+
+_layout.tsx
+.github/
+(tabs)/
+app/
+app.config.ts
+babel.config.js
+BASE44.md
+components/
+constants/oauth.ts
+design.md
+dev/
+docs/
+drizzle/
+expo-env.d.ts
+external-link.tsx
+hooks/
+lib/
+nativewind-env.d.ts
+oauth/
+parallax-scroll-view.tsx
+pnpm-lock.yaml
+README.md
+screen-container.tsx
+server/
+settings.tsx
+tailwind.config.js
+tests/
+theme.config.d.ts
+theme.config.js
+todo.md
+tsconfig.json
+types/
+ui/
+wrangler.jsonc
+
+Long-term fix: run pnpm format and remove these ignores gradually.
