@@ -14,6 +14,7 @@
  */
 
 import type { Express, Request, Response } from "express";
+import { createHmac, timingSafeEqual } from "crypto";
 import { invokeLLM } from "./_core/llm";
 
 // ─── In-memory conversation store (replace with DB for production) ────────────
@@ -192,9 +193,34 @@ async function processMessage(from: string, messageText: string): Promise<void> 
   await sendWhatsAppMessage(from, reply);
 }
 
+function isValidWhatsAppSignature(req: Request): boolean {
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  if (!appSecret) {
+    return true;
+  }
+
+  const signatureHeader = req.get("x-hub-signature-256");
+  const rawBody = (req as Request & { rawBody?: string }).rawBody;
+  if (!signatureHeader || !rawBody || !signatureHeader.startsWith("sha256=")) {
+    return false;
+  }
+
+  const expected = `sha256=${createHmac("sha256", appSecret).update(rawBody).digest("hex")}`;
+  const providedBuffer = Buffer.from(signatureHeader);
+  const expectedBuffer = Buffer.from(expected);
+  if (providedBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(providedBuffer, expectedBuffer);
+}
+
 // ─── Register WhatsApp webhook routes ────────────────────────────────────────
 export function registerWhatsAppWebhook(app: Express): void {
-  const verifyToken = process.env.WEBHOOK_VERIFY_TOKEN ?? "atom_imperial_2026";
+  const verifyToken = process.env.WEBHOOK_VERIFY_TOKEN;
+  if (!verifyToken) {
+    throw new Error("WEBHOOK_VERIFY_TOKEN must be set for WhatsApp webhook verification");
+  }
 
   // GET: Meta webhook verification
   app.get("/webhook/whatsapp", (req: Request, res: Response) => {
@@ -213,6 +239,12 @@ export function registerWhatsAppWebhook(app: Express): void {
 
   // POST: Incoming messages
   app.post("/webhook/whatsapp", (req: Request, res: Response) => {
+    if (!isValidWhatsAppSignature(req)) {
+      console.warn("[WhatsApp] Invalid webhook signature");
+      res.sendStatus(401);
+      return;
+    }
+
     // Acknowledge immediately (Meta requires < 5s response)
     res.sendStatus(200);
 
