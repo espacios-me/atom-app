@@ -1,14 +1,27 @@
+import { handleComs } from "./coms/handler";
+
 // espacios.me — Cloudflare Worker
 // Serves all static HTML pages with proper routing
 
 interface Env {
   ASSETS: Fetcher;
+  GITHUB_TOKEN?: string;
+  GITHUB_ORG?: string;
+  GITHUB_REPO?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  GEMINI_API_KEY?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    const comsResponse = await handleComs(request, env);
+    if (comsResponse) {
+      return comsResponse;
+    }
 
     // Route /atom → atom-landing.html
     if (path === "/atom" || path === "/atom/") {
@@ -73,10 +86,9 @@ export default {
       return env.ASSETS.fetch(new Request(url.toString(), request));
     }
 
-    // Route /admin → botspace.html (executive/operator dashboard entry)
+    // Route /admin → /coms (executive/operator dashboard entry)
     if (path === "/admin" || path === "/admin/") {
-      url.pathname = "/botspace.html";
-      return env.ASSETS.fetch(new Request(url.toString(), request));
+      return Response.redirect(`${url.origin}/coms`, 302);
     }
 
     // Root → espacios-main.html
