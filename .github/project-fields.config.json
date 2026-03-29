@@ -1,0 +1,40 @@
+{
+  "projectUrl": "https://github.com/orgs/espacios-me/projects/PROJECT_NUMBER",
+  "defaults": {
+    "statusOnPush": "Updated",
+    "environment": "Production"
+  },
+  "fields": [
+    {
+      "name": "Status",
+      "dataType": "SINGLE_SELECT",
+      "options": ["Backlog", "Ready", "In Progress", "Blocked", "Review", "Deployed", "Verified", "Updated"]
+    },
+    {
+      "name": "Page",
+      "dataType": "TEXT"
+    },
+    {
+      "name": "Area",
+      "dataType": "TEXT"
+    },
+    {
+      "name": "Last Updated",
+      "dataType": "DATE"
+    },
+    {
+      "name": "Repository",
+      "dataType": "TEXT"
+    },
+    {
+      "name": "Environment",
+      "dataType": "SINGLE_SELECT",
+      "options": ["Local", "Preview", "Staging", "Production"]
+    },
+    {
+      "name": "Priority",
+      "dataType": "SINGLE_SELECT",
+      "options": ["P0", "P1", "P2", "P3"]
+    }
+  ]
+}
